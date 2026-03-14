@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduPlanner — Create Your Plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --border:    #1e293b;
+      --accent:    #4ade80;
+      --accent2:   #22d3ee;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --error:     #f87171;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    /* Background grid lines */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 600px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .logo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 6vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+    }
+
+    /* Form fields */
+    .field {
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .field:nth-child(1) { animation-delay: 0.1s; }
+    .field:nth-child(2) { animation-delay: 0.15s; }
+    .field:nth-child(3) { animation-delay: 0.2s; }
+    .field:nth-child(4) { animation-delay: 0.25s; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,222,128,0.1);
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+
+    select option { background: var(--surface); }
+
+    /* Level selector (custom buttons) */
+    .level-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .level-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .level-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    .level-btn.active {
+      background: rgba(74,222,128,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Submit button */
+    .btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 16px;
+      background: var(--accent);
+      color: #0b0f1a;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: transform 0.15s, opacity 0.15s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74,222,128,0.25); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Spinner inside button */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #0b0f1a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn.loading .spinner { display: block; }
+    .btn.loading .btn-text { display: none; }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      color: var(--error);
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="page-wrapper">
+
+    <div class="header">
+      <div class="logo-badge">
+        <div class="logo-dot"></div>
+        AI-Powered
+      </div>
+      <h1>Build Your <span>Learning Plan</span></h1>
+      <p class="subtitle">Tell us what you want to learn and we'll generate a complete roadmap for you.</p>
+    </div>
+
+    <div class="card">
+      <form id="planForm">
+
+        <div class="field">
+          <label for="topic">Topic</label>
+          <input type="text" id="topic" placeholder="e.g. Web Development, Python, Machine Learning" required />
+        </div>
+
+        <div class="field">
+          <label for="time_commitment">Time Commitment</label>
+          <input type="text" id="time_commitment" placeholder="e.g. 1 hour per day, 2 weeks, 1 month" required />
+        </div>
+
+        <div class="field">
+          <label for="description">Description / Goal</label>
+          <textarea id="description" placeholder="What do you want to achieve? e.g. I want to build websites from scratch" required></textarea>
+        </div>
+
+        <div class="field">
+          <label>Your Level</label>
+          <div class="level-group">
+            <button type="button" class="level-btn active" data-value="beginner">Beginner</button>
+            <button type="button" class="level-btn" data-value="intermediate">Intermediate</button>
+            <button type="button" class="level-btn" data-value="advanced">Advanced</button>
+          </div>
+          <input type="hidden" id="level" value="beginner" />
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">
+          <span class="btn-text">Generate My Plan →</span>
+          <div class="spinner"></div>
+        </button>
+
+        <p class="error-msg" id="errorMsg">Something went wrong. Make sure your AI engine is running.</p>
+
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    // Level button toggle
+    const levelBtns = document.querySelectorAll('.level-btn');
+    const levelInput = document.getElementById('level');
+
+    levelBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        levelBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        levelInput.value = btn.dataset.value;
+      });
+    });
+
+    // Form submit — calls AI engine, then goes to result page
+    document.getElementById('planForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      // Get values
+      const topic           = document.getElementById('topic').value.trim();
+      const time_commitment = document.getElementById('time_commitment').value.trim();
+      const description     = document.getElementById('description').value.trim();
+      const level           = document.getElementById('level').value;
+
+      // Show loading state
+      btn.classList.add('loading');
+      btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      try {
+        // Call your FastAPI AI engine
+        const response = await fetch('http://127.0.0.1:8001/generate-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, time_commitment, description, level })
+        });
+
+        if (!response.ok) throw new Error('Server error');
+
+        const data = await response.json();
+
+        // Save result to localStorage so result.html can read it
+        localStorage.setItem('eduplan_result', JSON.stringify(data));
+
+        // Go to result page
+        window.location.href = 'result.html';
+
+      } catch (err) {
+        errorMsg.style.display = 'block';
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>

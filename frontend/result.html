@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduPlanner — Your Plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0b0f1a;
+      --surface:  #111827;
+      --border:   #1e293b;
+      --accent:   #4ade80;
+      --accent2:  #22d3ee;
+      --text:     #f1f5f9;
+      --muted:    #64748b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Back button */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      text-decoration: none;
+      margin-bottom: 32px;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--text); }
+
+    /* Header */
+    .header {
+      margin-bottom: 36px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .topic-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Meta row (level + time) */
+    .meta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .meta-tag {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-tag strong { color: var(--text); font-weight: 500; }
+
+    /* Module cards */
+    .modules-list { display: flex; flex-direction: column; gap: 16px; }
+
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      animation: fadeUp 0.5s ease both;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .module-card:hover {
+      border-color: rgba(74,222,128,0.3);
+      transform: translateY(-2px);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .module-number {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .module-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .time-badge {
+      background: rgba(34,211,238,0.08);
+      border: 1px solid rgba(34,211,238,0.2);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--accent2);
+      white-space: nowrap;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    /* Subtopics */
+    .subtopics { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+    .subtopics li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .subtopics li::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 7px;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    /* Total time box */
+    .total-box {
+      margin-top: 24px;
+      background: rgba(74,222,128,0.05);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 14px;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .total-label {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .total-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Raw plan fallback */
+    .raw-plan {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+
+    /* Start over button */
+    .start-over {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 14px 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .start-over:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* No data state */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="page-wrapper">
+
+    <a href="index.html" class="back-btn">← Back</a>
+
+    <div id="content"></div>
+
+  </div>
+
+  <script>
+    // Read the result saved by index.html
+    const raw = localStorage.getItem('eduplan_result');
+
+    const container = document.getElementById('content');
+
+    // If no data found, show empty state
+    if (!raw) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <h2>No plan found</h2>
+          <p>Please go back and generate a plan first.</p>
+          <br>
+          <a href="index.html" class="start-over">← Go to Form</a>
+        </div>`;
+    } else {
+
+      const data = JSON.parse(raw);
+      const planText = data.final_plan || '';
+
+      // Parse the plan text into modules
+      // Each module starts with "Module X:"
+      const moduleBlocks = planText.split(/(?=Module\s+\d+:)/i).filter(b => b.trim());
+
+      // Try to find "Total" line at the end
+      let totalTime = '';
+      const totalMatch = planText.match(/total[^\n]*time[^\n]*/i);
+      if (totalMatch) totalTime = totalMatch[0].replace(/^total[^:]*:/i, '').trim();
+
+      // Build header HTML
+      let html = `
+        <div class="header">
+          <div class="topic-badge">Your Learning Roadmap</div>
+          <h1>Your Plan for <span>${data.topic}</span></h1>
+          <div class="meta-row">
+            <div class="meta-tag">Level: <strong>${data.level}</strong></div>
+            <div class="meta-tag">Time: <strong>${data.time_commitment}</strong></div>
+          </div>
+        </div>
+        <div class="modules-list">
+      `;
+
+      // Build each module card
+      moduleBlocks.forEach((block, index) => {
+        const lines = block.trim().split('\n').filter(l => l.trim());
+
+        // First line is the module title line e.g. "Module 1: HTML Basics — Estimated Time: 4 days"
+        const titleLine = lines[0] || '';
+
+        // Extract module name (between : and —)
+        const nameMatch = titleLine.match(/Module\s+\d+:\s*([^—\n]+)/i);
+        const moduleName = nameMatch ? nameMatch[1].trim() : titleLine;
+
+        // Extract estimated time (after —)
+        const timeMatch = titleLine.match(/—\s*Estimated Time:\s*(.+)/i);
+        const estimatedTime = timeMatch ? timeMatch[1].trim() : '';
+
+        // Remaining lines are subtopics (lines starting with -)
+        const subtopics = lines.slice(1).filter(l => l.trim().startsWith('-'));
+
+        const subtopicsHTML = subtopics.map(s =>
+          `<li>${s.replace(/^-\s*/, '')}</li>`
+        ).join('');
+
+        html += `
+          <div class="module-card" style="animation-delay: ${index * 0.07}s">
+            <div class="module-header">
+              <div>
+                <div class="module-number">Module ${index + 1}</div>
+                <div class="module-title">${moduleName}</div>
+              </div>
+              ${estimatedTime ? `<div class="time-badge">${estimatedTime}</div>` : ''}
+            </div>
+            ${subtopicsHTML ? `<ul class="subtopics">${subtopicsHTML}</ul>` : ''}
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      // If parsing didn't find modules, show raw text
+      if (moduleBlocks.length === 0) {
+        html += `<div class="raw-plan">${planText}</div>`;
+      }
+
+      // Total time box
+      if (totalTime) {
+        html += `
+          <div class="total-box">
+            <span class="total-label">Total Estimated Time</span>
+            <span class="total-value">${totalTime}</span>
+          </div>
+        `;
+      }
+
+      // Start over button
+      html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
+
+      container.innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
