@@ -6,5 +6,6 @@ def create_state(topic, time_commitment, description, level):
         "level": level,
         "web_search_result": "",                     
         "structured_plan": "",                      
-        "structured_plan_with_time_allocation": ""   
+        "structured_plan_with_time_allocation": "",
+        "recommended_videos": []        
     }

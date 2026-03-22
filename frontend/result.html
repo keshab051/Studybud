@@ -294,106 +294,130 @@
   </div>
 
   <script>
-    // Read the result saved by index.html
-    const raw = localStorage.getItem('eduplan_result');
+  const raw = localStorage.getItem('eduplan_result');
+  const container = document.getElementById('content');
 
-    const container = document.getElementById('content');
+  if (!raw) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h2>No plan found</h2>
+        <p>Please go back and generate a plan first.</p>
+        <br>
+        <a href="index.html" class="start-over">← Go to Form</a>
+      </div>`;
+  } else {
 
-    // If no data found, show empty state
-    if (!raw) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <h2>No plan found</h2>
-          <p>Please go back and generate a plan first.</p>
-          <br>
-          <a href="index.html" class="start-over">← Go to Form</a>
-        </div>`;
-    } else {
+    const data = JSON.parse(raw);
+    const plan = data.final_plan;
 
-      const data = JSON.parse(raw);
-      const planText = data.final_plan || '';
-
-      // Parse the plan text into modules
-      // Each module starts with "Module X:"
-      const moduleBlocks = planText.split(/(?=Module\s+\d+:)/i).filter(b => b.trim());
-
-      // Try to find "Total" line at the end
-      let totalTime = '';
-      const totalMatch = planText.match(/total[^\n]*time[^\n]*/i);
-      if (totalMatch) totalTime = totalMatch[0].replace(/^total[^:]*:/i, '').trim();
-
-      // Build header HTML
-      let html = `
-        <div class="header">
-          <div class="topic-badge">Your Learning Roadmap</div>
-          <h1>Your Plan for <span>${data.topic}</span></h1>
-          <div class="meta-row">
-            <div class="meta-tag">Level: <strong>${data.level}</strong></div>
-            <div class="meta-tag">Time: <strong>${data.time_commitment}</strong></div>
-          </div>
+    // Build header
+    let html = `
+      <div class="header">
+        <div class="topic-badge">Your Learning Roadmap</div>
+        <h1>Your Plan for <span>${data.topic}</span></h1>
+        <div class="meta-row">
+          <div class="meta-tag">Level: <strong>${data.level}</strong></div>
+          <div class="meta-tag">Time: <strong>${data.time_commitment}</strong></div>
         </div>
-        <div class="modules-list">
-      `;
+        ${plan.overview ? `<p style="margin-top:16px; color:var(--muted); font-size:15px; line-height:1.7;">${plan.overview}</p>` : ''}
+      </div>
+      <div class="modules-list">
+    `;
 
-      // Build each module card
-      moduleBlocks.forEach((block, index) => {
-        const lines = block.trim().split('\n').filter(l => l.trim());
+    // Weekly plan cards
+    if (plan.weekly_plan && plan.weekly_plan.length > 0) {
+      plan.weekly_plan.forEach((week, index) => {
 
-        // First line is the module title line e.g. "Module 1: HTML Basics — Estimated Time: 4 days"
-        const titleLine = lines[0] || '';
+        // Collect all subtopics: topics + practice_tasks + projects
+        const allItems = [
+          ...(week.topics        || []).map(t => ({ label: '', text: t })),
+          ...(week.practice_tasks|| []).map(t => ({ label: '🛠 ', text: t })),
+          ...(week.projects      || []).map(t => ({ label: '🚀 ', text: t })),
+        ];
 
-        // Extract module name (between : and —)
-        const nameMatch = titleLine.match(/Module\s+\d+:\s*([^—\n]+)/i);
-        const moduleName = nameMatch ? nameMatch[1].trim() : titleLine;
-
-        // Extract estimated time (after —)
-        const timeMatch = titleLine.match(/—\s*Estimated Time:\s*(.+)/i);
-        const estimatedTime = timeMatch ? timeMatch[1].trim() : '';
-
-        // Remaining lines are subtopics (lines starting with -)
-        const subtopics = lines.slice(1).filter(l => l.trim().startsWith('-'));
-
-        const subtopicsHTML = subtopics.map(s =>
-          `<li>${s.replace(/^-\s*/, '')}</li>`
-        ).join('');
+        const subtopicsHTML = allItems
+          .map(item => `<li>${item.label}${item.text}</li>`)
+          .join('');
 
         html += `
           <div class="module-card" style="animation-delay: ${index * 0.07}s">
             <div class="module-header">
               <div>
-                <div class="module-number">Module ${index + 1}</div>
-                <div class="module-title">${moduleName}</div>
+                <div class="module-number">Week ${week.week}</div>
+                <div class="module-title">Week ${week.week} Plan</div>
               </div>
-              ${estimatedTime ? `<div class="time-badge">${estimatedTime}</div>` : ''}
+              ${week.estimated_time ? `<div class="time-badge">${week.estimated_time}</div>` : ''}
             </div>
             ${subtopicsHTML ? `<ul class="subtopics">${subtopicsHTML}</ul>` : ''}
           </div>
         `;
       });
-
-      html += `</div>`;
-
-      // If parsing didn't find modules, show raw text
-      if (moduleBlocks.length === 0) {
-        html += `<div class="raw-plan">${planText}</div>`;
-      }
-
-      // Total time box
-      if (totalTime) {
-        html += `
-          <div class="total-box">
-            <span class="total-label">Total Estimated Time</span>
-            <span class="total-value">${totalTime}</span>
-          </div>
-        `;
-      }
-
-      // Start over button
-      html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
-
-      container.innerHTML = html;
     }
-  </script>
+
+    html += `</div>`;
+
+    // Final project box
+    if (plan.final_project) {
+      html += `
+        <div class="total-box" style="margin-top:24px; flex-direction:column; align-items:flex-start;">
+          <span class="total-label">🎯 Final Project</span>
+          <span style="color:var(--text); font-size:15px; line-height:1.7; margin-top:8px;">${plan.final_project}</span>
+        </div>
+      `;
+    }
+
+    // Total duration box
+    if (plan.total_duration) {
+      html += `
+        <div class="total-box">
+          <span class="total-label">Total Estimated Duration</span>
+          <span class="total-value">${plan.total_duration}</span>
+        </div>
+      `;
+    }
+
+    // Recommended resources
+    if (plan.recommended_resources && plan.recommended_resources.length > 0) {
+      html += `
+        <div class="module-card" style="margin-top:16px;">
+          <div class="module-header">
+            <div>
+              <div class="module-number">Resources</div>
+              <div class="module-title">Recommended Resources</div>
+            </div>
+          </div>
+          <ul class="subtopics">
+            ${plan.recommended_resources.map(r => `<li>${r}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // Recommended course URLs
+    if (plan.recommended_course_url && plan.recommended_course_url.length > 0) {
+      html += `
+        <div class="module-card" style="margin-top:16px;">
+          <div class="module-header">
+            <div>
+              <div class="module-number">Courses</div>
+              <div class="module-title">Recommended Courses</div>
+            </div>
+          </div>
+          <ul class="subtopics">
+            ${plan.recommended_course_url.map(url =>
+              `<li><a href="${url}" target="_blank" style="color:var(--accent2); text-decoration:none;">${url}</a></li>`
+            ).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // Start over
+    html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
+
+    container.innerHTML = html;
+  }
+</script>
 
 </body>
 </html>
