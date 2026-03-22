@@ -55,7 +55,8 @@ def generate_plan(user_input: UserInput):
         "topic": state["topic"],
         "level": state["level"],
         "time_commitment": state["time_commitment"],
-        "final_plan": state["structured_plan_with_time_allocation"]
+        "final_plan": state["structured_plan_with_time_allocation"],
+         "recommended_videos": state["recommended_videos"]
     }
 
 
