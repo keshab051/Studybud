@@ -46,6 +46,103 @@
       z-index: 1;
     }
 
+/* Video recommendations */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 36px 0 16px;
+  color: var(--text);
+}
+
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.video-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.2s, transform 0.2s;
+  animation: fadeUp 0.5s ease both;
+}
+
+.video-card:hover {
+  border-color: rgba(74,222,128,0.3);
+  transform: translateY(-3px);
+}
+
+.video-thumb-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.video-thumb-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.video-card:hover .play-overlay { opacity: 1; }
+
+.play-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: #0b0f1a;
+  margin-left: 3px;
+}
+
+.video-info {
+  padding: 14px 16px;
+}
+
+.video-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-channel {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
     /* Back button */
     .back-btn {
       display: inline-flex;
@@ -411,6 +508,39 @@
         </div>
       `;
     }
+
+
+// Recommended Videos
+if (data.recommended_videos && data.recommended_videos.length > 0) {
+  html += `<h2 class="section-title">📺 Recommended Videos</h2>`;
+  html += `<div class="videos-grid">`;
+
+  data.recommended_videos.forEach((video, index) => {
+    html += `
+      <a class="video-card" href="${video.url}" target="_blank" rel="noopener noreferrer"
+         style="animation-delay: ${index * 0.08}s">
+        <div class="video-thumb-wrapper">
+          <img src="${video.thumbnail}" alt="${video.title}" loading="lazy" />
+          <div class="play-overlay">
+            <div class="play-icon">
+              <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">${video.title}</div>
+          <div class="video-channel">${video.channel}</div>
+        </div>
+      </a>
+    `;
+  });
+
+  html += `</div>`;
+}
+
+// Start over  ← your existing line continues below
+html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
+
 
     // Start over
     html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
