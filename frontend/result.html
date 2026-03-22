@@ -389,8 +389,7 @@
     <div id="content"></div>
 
   </div>
-
-  <script>
+<script>
   const raw = localStorage.getItem('eduplan_result');
   const container = document.getElementById('content');
 
@@ -411,10 +410,10 @@
     let html = `
       <div class="header">
         <div class="topic-badge">Your Learning Roadmap</div>
-        <h1>Your Plan for <span>${data.topic}</span></h1>
+        <h1>Your Plan for <span>${data.skill}</span></h1>
         <div class="meta-row">
           <div class="meta-tag">Level: <strong>${data.level}</strong></div>
-          <div class="meta-tag">Time: <strong>${data.time_commitment}</strong></div>
+          <div class="meta-tag">Time: <strong>${data.time_per_day} · ${data.duration}</strong></div>
         </div>
         ${plan.overview ? `<p style="margin-top:16px; color:var(--muted); font-size:15px; line-height:1.7;">${plan.overview}</p>` : ''}
       </div>
@@ -425,11 +424,10 @@
     if (plan.weekly_plan && plan.weekly_plan.length > 0) {
       plan.weekly_plan.forEach((week, index) => {
 
-        // Collect all subtopics: topics + practice_tasks + projects
         const allItems = [
-          ...(week.topics        || []).map(t => ({ label: '', text: t })),
-          ...(week.practice_tasks|| []).map(t => ({ label: '🛠 ', text: t })),
-          ...(week.projects      || []).map(t => ({ label: '🚀 ', text: t })),
+          ...(week.topics         || []).map(t => ({ label: '',    text: t })),
+          ...(week.practice_tasks || []).map(t => ({ label: '🛠 ', text: t })),
+          ...(week.projects       || []).map(t => ({ label: '🚀 ', text: t })),
         ];
 
         const subtopicsHTML = allItems
@@ -509,38 +507,33 @@
       `;
     }
 
+    // Recommended Videos
+    if (data.recommended_videos && data.recommended_videos.length > 0) {
+      html += `<h2 class="section-title">📺 Recommended Videos</h2>`;
+      html += `<div class="videos-grid">`;
 
-// Recommended Videos
-if (data.recommended_videos && data.recommended_videos.length > 0) {
-  html += `<h2 class="section-title">📺 Recommended Videos</h2>`;
-  html += `<div class="videos-grid">`;
-
-  data.recommended_videos.forEach((video, index) => {
-    html += `
-      <a class="video-card" href="${video.url}" target="_blank" rel="noopener noreferrer"
-         style="animation-delay: ${index * 0.08}s">
-        <div class="video-thumb-wrapper">
-          <img src="${video.thumbnail}" alt="${video.title}" loading="lazy" />
-          <div class="play-overlay">
-            <div class="play-icon">
-              <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+      data.recommended_videos.forEach((video, index) => {
+        html += `
+          <a class="video-card" href="${video.url}" target="_blank" rel="noopener noreferrer"
+             style="animation-delay: ${index * 0.08}s">
+            <div class="video-thumb-wrapper">
+              <img src="${video.thumbnail}" alt="${video.title}" loading="lazy" />
+              <div class="play-overlay">
+                <div class="play-icon">
+                  <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="video-info">
-          <div class="video-title">${video.title}</div>
-          <div class="video-channel">${video.channel}</div>
-        </div>
-      </a>
-    `;
-  });
+            <div class="video-info">
+              <div class="video-title">${video.title}</div>
+              <div class="video-channel">${video.channel}</div>
+            </div>
+          </a>
+        `;
+      });
 
-  html += `</div>`;
-}
-
-// Start over  ← your existing line continues below
-html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
-
+      html += `</div>`;
+    }
 
     // Start over
     html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
@@ -548,6 +541,5 @@ html += `<a href="index.html" class="start-over">← Create a New Plan</a>`;
     container.innerHTML = html;
   }
 </script>
-
 </body>
 </html>
